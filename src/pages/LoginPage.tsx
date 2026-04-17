@@ -107,6 +107,14 @@ export default function LoginPage({ role }: LoginPageProps) {
                 {
                     role !== 'admin' ?
                         <div className='redirect flex'>
+                            <Link to='/forgot-password' >Forgot Password?</Link>
+                        </div>
+                        :
+                        <></>
+                }
+                {
+                    role !== 'admin' ?
+                        <div className='redirect flex'>
                             <p className="caption">Don't have an account?</p>
                             <Link to='/signup' >Sign Up</Link>
                         </div>

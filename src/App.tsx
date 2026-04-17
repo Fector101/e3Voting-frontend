@@ -20,6 +20,8 @@ import Header from "./ui/header/Header.tsx";
 import { Menu, X } from "lucide-react";
 import NotFoundpage from "./pages/NotFoundPage.tsx";
 import SignupPage from "./pages/SignupPage.tsx";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.tsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage.tsx";
 import { Role } from "./assets/js/helper.ts";
 
 function App() {
@@ -102,6 +104,8 @@ function App() {
                 <Route path="/admin" element={<Adminpanelpage role={role} />} />
                 <Route path="/login" element={<LoginPage role="student"/>} />
                 <Route path="/signup" element={<SignupPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                 <Route path="/polls" element={<Pollspage/>} />
                 <Route path="/poll/:id" element={<PollPage role={role} />} />
                 <Route path="/results" element={<Resultspage />} />

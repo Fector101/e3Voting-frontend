@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { IUserData, UserContext } from '../assets/js/UserContext';
 
-import { Lock, Vote, IdCard, User } from "lucide-react";
+import { Lock, Vote, IdCard, User, Mail } from "lucide-react";
 import './../assets/css/loginpage.css'
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ export default function SignupPage() {
     const [matric_no, setMatricNo] = useState(usefiller ? "FT23CMP00001" : '');
     const [password, setPassword] = useState(usefiller ? "1" : '');
     const [fullname, setFullName] = useState(usefiller ? "Fabian Joseph" : '');
+    const [email, setEmail] = useState(usefiller ? "fabian@example.com" : '');
     const [signing_in, setSigningIn] = useState(false);
 
 
@@ -23,6 +24,7 @@ export default function SignupPage() {
         const formData = {
             username: fullname,
             matric_no,
+            email,
             password,
         };
         try {
@@ -96,7 +98,7 @@ export default function SignupPage() {
                         />
                     </div>
 
-                    {/* <label>Email</label>
+                    <label>Email</label>
                     <div className="input-group">
                         <Mail className="icon" />
                         <input
@@ -104,8 +106,9 @@ export default function SignupPage() {
                             placeholder="youremail@nsuk.edu.ng"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            required
                         />
-                    </div> */}
+                    </div>
 
                     <label>Password</label>
                     <div className="input-group">
