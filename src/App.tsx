@@ -1,6 +1,6 @@
-import { Route, Routes, useLocation } from "react-router";
+import { Route, Routes, useLocation, useNavigate } from "react-router";
 import { useContext, useEffect, useState } from "react";
-import { Toaster } from "sonner";
+import { toast, Toaster } from "sonner";
 import { UserContext } from './assets/js/UserContext';
 import { Analytics } from "@vercel/analytics/react"
 
@@ -25,6 +25,7 @@ import { Role } from "./assets/js/helper.ts";
 function App() {
     const location = useLocation();
     const context = useContext(UserContext);
+    const navigate = useNavigate();
 
     const [role, setRole] = useState<Role>(null);
     const [header_state, setHeaderState] = useState(window.innerWidth > 500);
@@ -57,6 +58,15 @@ function App() {
                 if (res.ok) {
                     const data = await res.json();
                     setRole(data.role);
+                    return
+                }
+                if (res.status === 401) {
+                    // Unauthorized, user is not logged in
+                    if(location.pathname == "/home"){
+                        toast.warning('Session expired. Please login again.');
+                        navigate('/login');
+                    }
+                    
                     return
                 }
                 console.log('Failed to fetch Role');
