@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, Filter, Plus, Users, X, XSquare } from 'lucide-react';
+import { Calendar, CheckSquare, Filter, Plus, Users, X, XSquare, Edit, Trash2 } from 'lucide-react';
 import '../assets/css/adminpanelpage.css';
 import { IElection, UserContext } from '../assets/js/UserContext';
 import { useContext, useEffect, useState } from 'react';
@@ -37,22 +37,31 @@ function Option({ placeholder, removeMe, myid, value, onChange }: {
 // type react_state_array_str = React.Dispatch<React.SetStateAction<string[]>>;
 type PollFormProps = {
     setFormPollModal: React.Dispatch<React.SetStateAction<boolean>>;
+    editingPoll: IElection | null;
+    clearEditing: () => void;
 };
 
-function PollForm({ setFormPollModal }: PollFormProps) {
-    const [title, setTitle] = useState('Time For MTH Lecture');
-    const [description, setDescription] = useState('Chose Time for MTH Class');
+function PollForm({ setFormPollModal, editingPoll, clearEditing }: PollFormProps) {
+    const [title, setTitle] = useState(editingPoll ? editingPoll.title : 'Time For MTH Lecture');
+    const [description, setDescription] = useState(editingPoll ? editingPoll.description : 'Chose Time for MTH Class');
     const [endDate, setEndDate] = useState(() => {
+        if (editingPoll && editingPoll.endDate) {
+            return new Date(editingPoll.endDate).toISOString().split('T')[0];
+        }
         const now = new Date();
         now.setDate(now.getDate() + 3);
         return now.toISOString().split('T')[0];
     });
 
-    // const [endDate, setEndDate] = useState('2025-04-03');
-    const [options, setOptions] = useState<{ id: number, value: string }[]>([
-        { id: 1, value: '8AM' },
-        { id: 2, value: '3PM' }
-    ]);
+    const [options, setOptions] = useState<{ id: number, value: string }[]>(() => {
+        if (editingPoll && editingPoll.options) {
+            return editingPoll.options.map((opt, index) => ({ id: index + 1, value: opt.text }));
+        }
+        return [
+            { id: 1, value: '8AM' },
+            { id: 2, value: '3PM' }
+        ];
+    });
     const [sendind_data_spinner, setSendingDataSpinner] = useState(false);
 
 
@@ -88,8 +97,13 @@ function PollForm({ setFormPollModal }: PollFormProps) {
 
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/add-election`, {
-                method: "POST",
+            const url = editingPoll 
+                ? `${import.meta.env.VITE_API_URL}/admin/edit-election/${editingPoll._id}`
+                : `${import.meta.env.VITE_API_URL}/admin/add-election`;
+            const method = editingPoll ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method: method,
                 credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
@@ -101,12 +115,13 @@ function PollForm({ setFormPollModal }: PollFormProps) {
 
             if (response.ok) {
                 setSendingDataSpinner(false)
-                console.log("Sent Election data:", data);
-                toast.success(data.msg || 'Sent Election Data Successful!');
-                // add said elction data to context
+                console.log("Success:", data);
+                toast.success(data.msg || (editingPoll ? 'Poll Updated!' : 'Poll Created!'));
+                setFormPollModal(false);
+                clearEditing();
             } else {
                 setSendingDataSpinner(false)
-                console.error("Sending Election Data error:", data);
+                console.error("Error:", data);
                 toast.warning(data.msg || 'Check your inputs.')
             }
         } catch (error) {
@@ -127,7 +142,7 @@ function PollForm({ setFormPollModal }: PollFormProps) {
                     <h1>Admin Panel</h1>
                     <p className='caption'>Manage polls and view results</p>
                 </div>
-                <button onClick={() => setFormPollModal(false)} className='primary-btn flex algin-items-cen'><XSquare /> Cancel</button>
+                <button onClick={() => { setFormPollModal(false); clearEditing(); }} className='primary-btn flex algin-items-cen'><XSquare /> Cancel</button>
             </div>
             <form onSubmit={handleSubmit}>
                 <label>Poll Title</label>
@@ -178,8 +193,8 @@ function PollForm({ setFormPollModal }: PollFormProps) {
                 </button>
                 <hr />
                 <div className='align-self-end'>
-                    <button onClick={() => setFormPollModal(false)} className='grey-btn'>Cancel</button>
-                    <button className='create-poll-btn primary-btn'>Create Poll</button>
+                    <button onClick={() => { setFormPollModal(false); clearEditing(); }} className='grey-btn'>Cancel</button>
+                    <button className='create-poll-btn primary-btn'>{editingPoll ? 'Update Poll' : 'Create Poll'}</button>
                 </div>
             </form>
         </div>
@@ -189,6 +204,7 @@ export default function Adminpanelpage({ role }: { role: Role }) {
     const context = useContext(UserContext);
     const [PollsData, setPollsData] = useState<IElection[]>([]);
     const [poll_form_modal, setFormPollModal] = useState(false);
+    const [editingPoll, setEditingPoll] = useState<IElection | null>(null);
     const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'closed'>('all'); // Add selectedTab state
 
     function newStatus(endDate: string | undefined) {
@@ -219,15 +235,34 @@ export default function Adminpanelpage({ role }: { role: Role }) {
         return true;
     });
 
+    const handleDelete = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this poll?')) return;
+
+        try {
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/delete-election/${id}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+            const data = await response.json();
+            if (response.ok) {
+                toast.success(data.msg || 'Poll deleted');
+            } else {
+                toast.error(data.msg || 'Error deleting poll');
+            }
+        } catch (error) {
+            toast.error('Error deleting poll');
+        }
+    };
+
     return (
         <div className="adminpage page" style={{ overflowY: poll_form_modal ? 'hidden' : 'auto' }}>
-            {poll_form_modal && <PollForm setFormPollModal={setFormPollModal} />}
+            {poll_form_modal && <PollForm setFormPollModal={setFormPollModal} editingPoll={editingPoll} clearEditing={() => setEditingPoll(null)} />}
             <section className="heading">
                 <div>
                     <h1>Admin Panel</h1>
                     <p className="caption">Manage polls and view results</p>
                 </div>
-                <button onClick={() => setFormPollModal(true)} className="primary-btn">
+                <button onClick={() => { setEditingPoll(null); setFormPollModal(true); }} className="primary-btn">
                     <Plus />
                     Create New Poll
                 </button>
@@ -265,12 +300,13 @@ export default function Adminpanelpage({ role }: { role: Role }) {
                             <th>End Date</th>
                             <th><Users /></th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredPollsData.map((poll) => (
                             <tr key={poll._id}>
-                                <td>
+                                <td data-label="Title">
                                     <div className="poll-title">
                                         {poll.title}
                                         <span className={`status ${newStatus(poll.endDate)?'active' : 'closed'}`}>
@@ -279,10 +315,10 @@ export default function Adminpanelpage({ role }: { role: Role }) {
                                     </div>
                                     <p className="poll-description">{poll.description}</p>
                                 </td>
-                                <td className='date caption'>{formatDate(poll.startDate)}</td>
-                                <td className='date caption'>{formatDate(poll.endDate)}</td>
-                                <td className='users-row'><Users /> {poll.options.length}</td>
-                                <td>
+                                <td data-label="Created" className='date caption'>{formatDate(poll.startDate)}</td>
+                                <td data-label="End Date" className='date caption'>{formatDate(poll.endDate)}</td>
+                                <td data-label="Voters" className='users-row'><Users /> {poll.options.length}</td>
+                                <td data-label="Status">
                                     <button className={"action-btn " + (newStatus(poll.endDate) ? 'active' : 'close')}>
                                         {newStatus(poll.endDate) ? (
                                             <>
@@ -294,6 +330,24 @@ export default function Adminpanelpage({ role }: { role: Role }) {
                                             </>
                                         )}
                                     </button>
+                                </td>
+                                <td data-label="Actions">
+                                    <div className="row" style={{ gap: '10px' }}>
+                                        <button 
+                                            className="grey-btn" 
+                                            style={{ padding: '5px' }}
+                                            onClick={() => { setEditingPoll(poll); setFormPollModal(true); }}
+                                        >
+                                            <Edit size={16} />
+                                        </button>
+                                        <button 
+                                            className="grey-btn delete-btn" 
+                                            style={{ padding: '5px', color: '#ff4d4d' }}
+                                            onClick={() => handleDelete(poll._id)}
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

@@ -195,7 +195,7 @@ table tr th:nth-child(4) {
 .poll-form{
     overflow-y: auto;
     background: rgb(243, 243, 243);
-    padding: 40px;
+    padding: 20px;
 }
 .poll-form .caption{
     margin-top: 1px;
@@ -265,44 +265,133 @@ table tr th:nth-child(4) {
     padding: 10px 15px;
     margin-left: 10px;
 }
-@media screen and (max-width:460px) {
-    .adminpage .heading {
-        flex-wrap: wrap;
-        gap: 15px;
+@media screen and (max-width: 768px) {
+    .polls-section {
+        padding: 10px;
     }
 
-    table th {
+    .polls-section table, 
+    .polls-section table thead, 
+    .polls-section table tbody, 
+    .polls-section table th, 
+    .polls-section table td, 
+    .polls-section table tr { 
+        display: block; 
+    }
+
+    .polls-section table thead tr { 
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    .polls-section table tbody tr {
+        border: 1px solid #eee;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        padding: 15px;
+        height: auto;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background: #fdfdfd;
+    }
+
+    .polls-section table td { 
+        border: none;
+        position: relative;
+        padding-left: 45%; 
+        padding-block: 10px;
+        text-align: right;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        min-height: 40px;
+    }
+
+    .polls-section table td:before { 
+        position: absolute;
+        left: 0;
+        width: 40%; 
+        padding-right: 10px; 
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: #666;
         font-size: 11px;
+        text-transform: uppercase;
+        content: attr(data-label);
     }
 
-    .adminpage.page {
-        padding-left: 25px;
-        padding-right: 25px;
+    .polls-section table td:first-child {
+        display: block;
+        padding-left: 0;
+        text-align: left;
+        border-bottom: 2px solid #f0f0f0;
+        margin-bottom: 10px;
+        padding-bottom: 15px;
     }
 
-    table tr th:nth-child(2),
-    table tr th:nth-child(3),
-    table tr th:nth-child(4) {
-        display: none;
-    }
-
-    table tr td:nth-child(2),
-    table tr td:nth-child(3),
-    table tr td:nth-child(4) {
+    .polls-section table td:first-child:before {
         display: none;
     }
 
     .poll-title {
-        font-size: 11px;
+        font-size: 16px;
+        flex-wrap: wrap;
+        width: 100%;
     }
 
-    .action-btn {
-        padding: 6px 6px;
-        font-size: 11px;
+    .poll-description {
+        font-size: 13px;
+        max-width: 100%;
     }
 
-    .status {
-        font-size: 10px;
-        padding: 4px;
+    .polls-section table td .row {
+        justify-content: flex-end;
+        width: 100%;
+    }
+
+    .adminpage.page {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .adminpage .heading {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .adminpage .heading button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .polls-section .head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .polls-section .row.tab-btns {
+        width: 100%;
+        overflow-x: auto;
+        padding: 5px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .poll-form {
+        padding: 15px;
+        width: 100%;
+    }
+
+    .poll-form .header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .poll-form .header button {
+        width: 100%;
+        order: -1;
+        margin-bottom: 15px;
     }
 }
