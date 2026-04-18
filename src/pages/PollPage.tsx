@@ -149,7 +149,22 @@ function PollPage({ role }: { role: Role }) {
                                 <div className="voters" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                     {option.voters && option.voters.length > 0 ? (
                                         option.voters.map((voter, i) => (
-                                            <span key={i} className="voter-tag" style={{ background: '#4ec9e626', color: '#00708b', padding: '4px 8px', borderRadius: '5px', fontSize: '13px' }}>
+                                            <span 
+                                                key={i} 
+                                                title={voter}
+                                                className="voter-tag" 
+                                                style={{ 
+                                                    background: '#4ec9e626', 
+                                                    color: '#00708b', 
+                                                    padding: '4px 8px', 
+                                                    borderRadius: '5px', 
+                                                    fontSize: '13px',
+                                                    maxWidth: '120px',
+                                                    whiteSpace: 'nowrap',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis'
+                                                }}
+                                            >
                                                 {voter}
                                             </span>
                                         ))
