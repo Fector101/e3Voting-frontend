@@ -134,6 +134,34 @@ function PollPage({ role }: { role: Role }) {
                     <p>Total votes: {getPollTotalVotes(PollData?.options)}</p>
                 </div>
             </main>
+
+            <section className="voter-details-section" style={{ marginTop: '40px' }}>
+                <div className="voting-card" style={{ maxWidth: '100%' }}>
+                    <h3>Detailed Voting Breakdown</h3>
+                    <p className="caption">Transparent view of who voted for each candidate/option</p>
+                    <div className="voter-lists-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '20px' }}>
+                        {PollData?.options.map((option, index) => (
+                            <div key={index} className="option-voter-list" style={{ background: '#f9f9f9', padding: '15px', borderRadius: '10px' }}>
+                                <h4 style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
+                                    {option.text}
+                                    <span className="badge" style={{ background: '#e0e0e0', padding: '2px 8px', borderRadius: '10px', fontSize: '12px' }}>{option.votes}</span>
+                                </h4>
+                                <div className="voters" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {option.voters && option.voters.length > 0 ? (
+                                        option.voters.map((voter, i) => (
+                                            <span key={i} className="voter-tag" style={{ background: '#4ec9e626', color: '#00708b', padding: '4px 8px', borderRadius: '5px', fontSize: '13px' }}>
+                                                {voter}
+                                            </span>
+                                        ))
+                                    ) : (
+                                        <p className="caption" style={{ fontStyle: 'italic' }}>No votes yet</p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
         </div>
     );
 };

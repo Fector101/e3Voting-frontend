@@ -13,6 +13,7 @@ interface PollOption {
     text: string;
     votes: number;
     _id: string;
+    voters?: string[];
 }
 
 export interface IElection {
