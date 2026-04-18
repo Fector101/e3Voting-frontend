@@ -84,7 +84,9 @@
 }
 
 .poll-page.page .voting-card {
-    width: 400px;
+    flex-grow: 1;
+    flex-basis: 400px;
+    max-width: 100%;
     background-color: white;
     padding: 1.2rem 1rem;
     border-radius: 10px;

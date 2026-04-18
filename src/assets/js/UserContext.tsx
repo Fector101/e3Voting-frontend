@@ -24,6 +24,7 @@ export interface IElection {
     endDate: string;   // ISO date string
     options: PollOption[];
     status: "ongoing" | "completed"; // Use union type if there are only specific statuses
+    voters: string[];
 }
 // voters: string[];  // Array of voter IDs (if applicable)
 

@@ -136,44 +136,46 @@ function PollPage({ role }: { role: Role }) {
             </main>
 
             <section className="voter-details-section" style={{ marginTop: '40px' }}>
-                <div className="voting-card" style={{ maxWidth: '100%' }}>
-                    <h3>Detailed Voting Breakdown</h3>
-                    <p className="caption">Transparent view of who voted for each candidate/option</p>
-                    <div className="voter-lists-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px', marginTop: '20px' }}>
-                        {PollData?.options.map((option, index) => (
-                            <div key={index} className="option-voter-list" style={{ background: '#f9f9f9', padding: '15px', borderRadius: '10px' }}>
-                                <h4 style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                                    {option.text}
-                                    <span className="badge" style={{ background: '#e0e0e0', padding: '2px 8px', borderRadius: '10px', fontSize: '12px' }}>{option.votes}</span>
-                                </h4>
-                                <div className="voters" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {option.voters && option.voters.length > 0 ? (
-                                        option.voters.map((voter, i) => (
-                                            <span 
-                                                key={i} 
-                                                title={voter}
-                                                className="voter-tag" 
-                                                style={{ 
-                                                    background: '#4ec9e626', 
-                                                    color: '#00708b', 
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '5px', 
-                                                    fontSize: '13px',
-                                                    maxWidth: '120px',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis'
-                                                }}
-                                            >
-                                                {voter}
-                                            </span>
-                                        ))
-                                    ) : (
-                                        <p className="caption" style={{ fontStyle: 'italic' }}>No votes yet</p>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                <div className="voting-card">
+                    <h3>Verified Participants</h3>
+                    <p className="caption">This poll is anonymous. Listed below are the students who have successfully cast their ballots.</p>
+                    
+                    <div className="participation-stats" style={{ display: 'flex', gap: '20px', margin: '20px 0', padding: '15px', background: '#f0f9ff', borderRadius: '10px', flexWrap: 'wrap' }}>
+                        <div className="stat-item">
+                            <h4 style={{ color: '#00708b' }}>Total Votes</h4>
+                            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>{getPollTotalVotes(PollData?.options)}</p>
+                        </div>
+                        <div className="stat-item">
+                            <h4 style={{ color: '#00708b' }}>Unique Voters</h4>
+                            <p style={{ fontSize: '24px', fontWeight: 'bold' }}>{
+                                PollData?.voters?.length || 0
+                            }</p>
+                        </div>
+                    </div>
+
+                    <div className="voters-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px' }}>
+                        {PollData?.voters && PollData.voters.length > 0 ? (
+                            PollData.voters.map((matricNo, i) => (
+                                <span 
+                                    key={i} 
+                                    className="voter-tag" 
+                                    style={{ 
+                                        background: '#f1f5f9', 
+                                        color: '#475569', 
+                                        padding: '6px 14px', 
+                                        borderRadius: '6px', 
+                                        fontSize: '13px',
+                                        fontWeight: '600',
+                                        border: '1px solid #e2e8f0',
+                                        fontFamily: 'monospace'
+                                    }}
+                                >
+                                    {matricNo}
+                                </span>
+                            ))
+                        ) : (
+                            <p className="caption" style={{ fontStyle: 'italic' }}>No participation records yet</p>
+                        )}
                     </div>
                 </div>
             </section>

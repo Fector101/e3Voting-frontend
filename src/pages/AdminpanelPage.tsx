@@ -1,9 +1,10 @@
-import { Calendar, CheckSquare, Filter, Plus, Users, X, XSquare, Edit, Trash2 } from 'lucide-react';
+import { Calendar, CheckSquare, Filter, Plus, Users, X, XSquare, Edit, Trash2, LayoutDashboard, TrendingUp, PieChart as PieChartIcon } from 'lucide-react';
 import '../assets/css/adminpanelpage.css';
 import { IElection, UserContext } from '../assets/js/UserContext';
 import { useContext, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { formatDate, Role } from '../assets/js/helper';
+import MyBarChart from '../ui/MyBarChart';
 
 
 function Option({ placeholder, removeMe, myid, value, onChange }: {
@@ -33,8 +34,7 @@ function Option({ placeholder, removeMe, myid, value, onChange }: {
         </div>
     )
 }
-// type react_state_array_int = React.Dispatch<React.SetStateAction<number[]>>;
-// type react_state_array_str = React.Dispatch<React.SetStateAction<string[]>>;
+
 type PollFormProps = {
     setFormPollModal: React.Dispatch<React.SetStateAction<boolean>>;
     editingPoll: IElection | null;
@@ -67,9 +67,7 @@ function PollForm({ setFormPollModal, editingPoll, clearEditing }: PollFormProps
 
     function removeMe(id: number) {
         setOptions(opts => {
-            console.log(opts, id)
             const new_opts = opts.filter(opt => opt.id !== id)
-            console.log(new_opts)
             return new_opts
         })
 
@@ -93,7 +91,6 @@ function PollForm({ setFormPollModal, editingPoll, clearEditing }: PollFormProps
             endDate,
             options: options.map(opt => opt.value)
         };
-        console.log(pollData)
 
 
         try {
@@ -115,18 +112,15 @@ function PollForm({ setFormPollModal, editingPoll, clearEditing }: PollFormProps
 
             if (response.ok) {
                 setSendingDataSpinner(false)
-                console.log("Success:", data);
                 toast.success(data.msg || (editingPoll ? 'Poll Updated!' : 'Poll Created!'));
                 setFormPollModal(false);
                 clearEditing();
             } else {
                 setSendingDataSpinner(false)
-                console.error("Error:", data);
                 toast.warning(data.msg || 'Check your inputs.')
             }
         } catch (error) {
             setSendingDataSpinner(false)
-            console.error("Catch Sending Data failed error:", error);
             toast.error('Something went wrong -' + error);
         }
     }
@@ -200,12 +194,135 @@ function PollForm({ setFormPollModal, editingPoll, clearEditing }: PollFormProps
         </div>
     )
 }
+
+
+function AnalyticsView() {
+    const [analytics, setAnalytics] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAnalytics = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/analytics`, {
+                    credentials: "include",
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    setAnalytics(data);
+                } else {
+                    toast.error(data.msg || 'Error fetching analytics');
+                }
+            } catch (error) {
+                console.error(error);
+                toast.error('Network error fetching analytics');
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchAnalytics();
+    }, []);
+
+    if (loading) return <div className="flex justify-content-cen align-items-cen" style={{ padding: '50px' }}><div className="spinner"></div></div>;
+    if (!analytics) return <p className="caption">No analytics data available.</p>;
+
+    return (
+        <div className="analytics-view">
+            <div className="preview-stats-box" style={{ marginBottom: '30px' }}>
+                <div className="card">
+                    <div className="row title-box">
+                        <span>
+                            <h3>Total Students</h3>
+                            <strong>{analytics.overview.totalStudents}</strong>
+                        </span>
+                        <Users className="badge blue" />
+                    </div>
+                </div>
+                <div className="card">
+                    <div className="row title-box">
+                        <span>
+                            <h3>Voted Students</h3>
+                            <strong>{analytics.overview.studentsWhoVoted}</strong>
+                        </span>
+                        <CheckSquare className="badge green" />
+                    </div>
+                </div>
+                <div className="card">
+                    <div className="row title-box">
+                        <span>
+                            <h3>Total Votes</h3>
+                            <strong>{analytics.overview.totalVotes}</strong>
+                        </span>
+                        <TrendingUp className="badge purple" />
+                    </div>
+                </div>
+                <div className="card">
+                    <div className="row title-box">
+                        <span>
+                            <h3>Participation Rate</h3>
+                            <strong>{analytics.overview.participationRate}%</strong>
+                        </span>
+                        <PieChartIcon className="badge yellow" />
+                    </div>
+                </div>
+            </div>
+
+            <section className="polls-section">
+                <div className="flex space-between align-items-cen">
+                    <h3>Top 5 Popular Polls</h3>
+                    <div className="flex" style={{ gap: '10px' }}>
+                        <button 
+                            className="grey-btn flex algin-items-cen" 
+                            style={{ fontSize: '13px', padding: '8px 15px' }}
+                            onClick={async () => {
+                                if (!confirm('This will WIPE all existing polls/students and generate new ones. Proceed?')) return;
+                                try {
+                                    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/simulation/generate`, { method: 'POST', credentials: 'include' });
+                                    const data = await res.json();
+                                    if (res.ok) { toast.success(data.msg); window.location.reload(); }
+                                    else toast.error(data.msg);
+                                } catch (e) { toast.error('Request failed'); }
+                            }}
+                        >
+                            <TrendingUp size={16} /> Seed Simulation
+                        </button>
+                        <button 
+                            className="grey-btn flex algin-items-cen" 
+                            style={{ fontSize: '13px', padding: '8px 15px', color: '#ff4d4d' }}
+                            onClick={async () => {
+                                if (!confirm('DANGER: This will delete ALL polls and students permanently. Proceed?')) return;
+                                try {
+                                    const res = await fetch(`${import.meta.env.VITE_API_URL}/admin/simulation/clear`, { method: 'DELETE', credentials: 'include' });
+                                    const data = await res.json();
+                                    if (res.ok) { toast.success(data.msg); window.location.reload(); }
+                                    else toast.error(data.msg);
+                                } catch (e) { toast.error('Request failed'); }
+                            }}
+                        >
+                            <Trash2 size={16} /> Wipe Database
+                        </button>
+                    </div>
+                </div>
+                <div className="main-votings-box" style={{ marginTop: '20px' }}>
+                    <div className="voting-card" style={{ maxWidth: '100%' }}>
+                        <MyBarChart 
+                            card_width={800} 
+                            students={analytics.popularPolls.map((p: any) => p.title)} 
+                            votes={analytics.popularPolls.map((p: any) => p.count)} 
+                        />
+                    </div>
+                </div>
+            </section>
+        </div>
+    );
+}
+
 export default function Adminpanelpage({ role }: { role: Role }) {
     const context = useContext(UserContext);
     const [PollsData, setPollsData] = useState<IElection[]>([]);
     const [poll_form_modal, setFormPollModal] = useState(false);
     const [editingPoll, setEditingPoll] = useState<IElection | null>(null);
-    const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'closed'>('all'); // Add selectedTab state
+    const [view, setView] = useState<'manage' | 'analytics'>('manage');
+    const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'closed'>('all');
 
     function newStatus(endDate: string | undefined) {
         if (!endDate) return false;
@@ -223,21 +340,15 @@ export default function Adminpanelpage({ role }: { role: Role }) {
         return <p>Protected Route</p>;
     }
 
-    // Filter PollsData based on the selected tab
     const filteredPollsData = PollsData.filter((poll) => {
-        if (selectedTab === 'all') {
-            return true;
-        } else if (selectedTab === 'active') {
-            return newStatus(poll.endDate);
-        } else if (selectedTab === 'closed') {
-            return !newStatus(poll.endDate);
-        }
+        if (selectedTab === 'all') return true;
+        if (selectedTab === 'active') return newStatus(poll.endDate);
+        if (selectedTab === 'closed') return !newStatus(poll.endDate);
         return true;
     });
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this poll?')) return;
-
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/admin/delete-election/${id}`, {
                 method: 'DELETE',
@@ -260,101 +371,89 @@ export default function Adminpanelpage({ role }: { role: Role }) {
             <section className="heading">
                 <div>
                     <h1>Admin Panel</h1>
-                    <p className="caption">Manage polls and view results</p>
+                    <p className="caption">Manage polls and view engagement metrics</p>
                 </div>
-                <button onClick={() => { setEditingPoll(null); setFormPollModal(true); }} className="primary-btn">
-                    <Plus />
-                    Create New Poll
-                </button>
+                <div className="row" style={{ gap: '10px' }}>
+                    <button 
+                        className={`grey-btn flex algin-items-cen ${view === 'manage' ? 'active' : ''}`}
+                        onClick={() => setView('manage')}
+                        style={{ background: view === 'manage' ? '#4ec9e6' : '', color: view === 'manage' ? 'white' : '' }}
+                    >
+                        <Filter size={18} /> Manage
+                    </button>
+                    <button 
+                        className={`grey-btn flex algin-items-cen ${view === 'analytics' ? 'active' : ''}`}
+                        onClick={() => setView('analytics')}
+                        style={{ background: view === 'analytics' ? '#4ec9e6' : '', color: view === 'analytics' ? 'white' : '' }}
+                    >
+                        <LayoutDashboard size={18} /> Analytics
+                    </button>
+                    <button onClick={() => { setEditingPoll(null); setFormPollModal(true); }} className="primary-btn">
+                        <Plus />
+                        Create New Poll
+                    </button>
+                </div>
             </section>
-            <section className='polls-section'>
-                <div className='row head'>
-                    <h3>Manage Polls</h3>
-                    <div className='row tab-btns'>
-                        <button
-                            className={selectedTab === 'all' ? 'active' : ''}
-                            onClick={() => setSelectedTab('all')}>
-                            <Filter /> All
-                        </button>
-                        <button
-                            className={selectedTab === 'active' ? 'active' : ''}
-                            onClick={() => setSelectedTab('active')}>
-                            <CheckSquare /> Active
-                        </button>
-                        <button
-                            className={selectedTab === 'closed' ? 'active' : ''}
-                            onClick={() => setSelectedTab('closed')}>
-                            <XSquare /> Closed
-                        </button>
+
+            {view === 'manage' ? (
+                <section className='polls-section'>
+                    <div className='row head'>
+                        <h3>Manage Polls</h3>
+                        <div className='row tab-btns'>
+                            <button className={selectedTab === 'all' ? 'active' : ''} onClick={() => setSelectedTab('all')}><Filter /> All</button>
+                            <button className={selectedTab === 'active' ? 'active' : ''} onClick={() => setSelectedTab('active')}><CheckSquare /> Active</button>
+                            <button className={selectedTab === 'closed' ? 'active' : ''} onClick={() => setSelectedTab('closed')}><XSquare /> Closed</button>
+                        </div>
                     </div>
-                </div>
-                <div className='row sub-text caption'>
-                    <Calendar />
-                    <p>Showing {filteredPollsData.length} Polls</p>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Created</th>
-                            <th>End Date</th>
-                            <th><Users /></th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredPollsData.map((poll) => (
-                            <tr key={poll._id}>
-                                <td data-label="Title">
-                                    <div className="poll-title">
-                                        {poll.title}
-                                        <span className={`status ${newStatus(poll.endDate)?'active' : 'closed'}`}>
-                                            {newStatus(poll.endDate) ? 'ongoing' : 'ended'}
-                                        </span>
-                                    </div>
-                                    <p className="poll-description">{poll.description}</p>
-                                </td>
-                                <td data-label="Created" className='date caption'>{formatDate(poll.startDate)}</td>
-                                <td data-label="End Date" className='date caption'>{formatDate(poll.endDate)}</td>
-                                <td data-label="Voters" className='users-row'><Users /> {poll.options.length}</td>
-                                <td data-label="Status">
-                                    <button className={"action-btn " + (newStatus(poll.endDate) ? 'active' : 'close')}>
-                                        {newStatus(poll.endDate) ? (
-                                            <>
-                                                <CheckSquare /> Active
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X /> Ended
-                                            </>
-                                        )}
-                                    </button>
-                                </td>
-                                <td data-label="Actions">
-                                    <div className="row" style={{ gap: '10px' }}>
-                                        <button 
-                                            className="grey-btn" 
-                                            style={{ padding: '5px' }}
-                                            onClick={() => { setEditingPoll(poll); setFormPollModal(true); }}
-                                        >
-                                            <Edit size={16} />
-                                        </button>
-                                        <button 
-                                            className="grey-btn delete-btn" 
-                                            style={{ padding: '5px', color: '#ff4d4d' }}
-                                            onClick={() => handleDelete(poll._id)}
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </td>
+                    <div className='row sub-text caption'>
+                        <Calendar />
+                        <p>Showing {filteredPollsData.length} Polls</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Created</th>
+                                <th>End Date</th>
+                                <th><Users /></th>
+                                <th>Status</th>
+                                <th>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </section>
+                        </thead>
+                        <tbody>
+                            {filteredPollsData.map((poll) => (
+                                <tr key={poll._id}>
+                                    <td data-label="Title">
+                                        <div className="poll-title">
+                                            {poll.title}
+                                            <span className={`status ${newStatus(poll.endDate) ? 'active' : 'closed'}`}>
+                                                {newStatus(poll.endDate) ? 'ongoing' : 'ended'}
+                                            </span>
+                                        </div>
+                                        <p className="poll-description">{poll.description}</p>
+                                    </td>
+                                    <td data-label="Created" className='date caption'>{formatDate(poll.startDate)}</td>
+                                    <td data-label="End Date" className='date caption'>{formatDate(poll.endDate)}</td>
+                                    <td data-label="Voters" className='users-row'><Users /> {poll.voters.length}</td>
+                                    <td data-label="Status">
+                                        <button className={"action-btn " + (newStatus(poll.endDate) ? 'active' : 'close')}>
+                                            {newStatus(poll.endDate) ? <><CheckSquare /> Active</> : <><X /> Ended</>}
+                                        </button>
+                                    </td>
+                                    <td data-label="Actions">
+                                        <div className="row" style={{ gap: '10px' }}>
+                                            <button className="grey-btn" style={{ padding: '5px' }} onClick={() => { setEditingPoll(poll); setFormPollModal(true); }}><Edit size={16} /></button>
+                                            <button className="grey-btn delete-btn" style={{ padding: '5px', color: '#ff4d4d' }} onClick={() => handleDelete(poll._id)}><Trash2 size={16} /></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </section>
+            ) : (
+                <AnalyticsView />
+            )}
         </div>
     );
 }
-
